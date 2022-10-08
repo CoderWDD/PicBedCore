@@ -1,0 +1,16 @@
+spring:
+  redis:
+    port: 9736
+    host: 106.15.2.32
+    connect-timeout: 5000
+    jedis:
+      pool:
+        max-idle: 10
+        max-wait: -1
+        min-idle: 5
+
+server:
+  port: 7788
+  error:
+    include-message: ALWAYS
+    include-stacktrace: NEVER
