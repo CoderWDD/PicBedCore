@@ -1,0 +1,30 @@
+version: "3"
+services:
+  redis:
+    container_name: PicBedCore_Redis
+    image: redis:latest
+    restart: always
+    ports:
+      - "9736:9736"
+    environment:
+      - REDIS_PORT=9736
+      - CONNECT_TIMEOUT=5000
+      - MAX_IDLE=10
+      - MAX_WAIT=-1
+      - MIN_IDLE=5
+
+  PicSingular:
+    container_name: PicBedCore
+    build: .
+    image: pic_bed_core_image
+    ports:
+      - "7788:7788"
+    restart: always
+    volumes:
+      - /home/ecs-user/picBed:/picBed
+    depends_on:
+      - redis
+    links:
+      - "redis:redis"
+    environment:
+      - TZ=Asia/Shanghai
