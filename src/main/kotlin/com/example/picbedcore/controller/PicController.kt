@@ -2,9 +2,10 @@ package com.example.picbedcore.controller
 
 import com.example.picbedcore.constants.FilePathConstant
 import com.example.picbedcore.constants.TokenConstants
+import com.example.picbedcore.dto.PagesDTO
+import com.example.picbedcore.util.DTOUtil
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.redis.core.RedisTemplate
-import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -41,7 +42,7 @@ class PicController {
 
     // 获取图片列表
     @GetMapping("/list/{page}/{size}")
-    fun getImageList(@PathVariable(name = "page") page: Int, @PathVariable(name = "size") size: Int): List<String>{
+    fun getImageList(@PathVariable(name = "page") page: Int, @PathVariable(name = "size") size: Int): PagesDTO<String> {
         if (!checkToken(request, redisTemplate)) throw IllegalArgumentException("Token is Invalid")
         if (page < 1) throw IllegalArgumentException("Page should not be less than 1")
         if (size < 1) throw IllegalArgumentException("Size should not be less than 1")
@@ -49,7 +50,7 @@ class PicController {
         // 获取文件夹下的所有文件列表
         val files = file.listFiles()?.asList() ?: throw IllegalArgumentException("No images")
         // 按时间顺序排序
-        val sortFiles = files.sortedWith{ file1, file2 ->
+        val sortFiles = files.sortedWith { file1, file2 ->
             val diff = file1.lastModified() - file2.lastModified()
             when {
                 diff > 0L -> 1
@@ -57,19 +58,9 @@ class PicController {
                 else -> -1
             }
         }
-        // 如果页码超出
-        if ((page - 1) * size > sortFiles.size) throw IllegalArgumentException("Page count exceeded")
-        val resPathList = mutableListOf<String>()
-        val resFiles : List<File> = if (page * size >= sortFiles.size) {
-            // 如果最后一页大小不够
-            sortFiles.subList(fromIndex = (page - 1) * size, toIndex = sortFiles.size - 1)
-        }else{
-            sortFiles.subList(fromIndex = (page - 1) * size, toIndex = page * size - 1)
-        }
-        resFiles.forEach {
-            resPathList.add(it.path)
-        }
-        return resPathList
+        val pathList = mutableListOf<String>()
+        sortFiles.forEach { pathList.add(it.path) }
+        return DTOUtil.listToPageDTO(pathList, page, size)
     }
 
     private fun checkToken(request: HttpServletRequest, redisTemplate: RedisTemplate<String,String>): Boolean{
