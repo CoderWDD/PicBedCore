@@ -9,12 +9,13 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 import java.io.File
 import java.util.UUID
 import javax.servlet.http.HttpServletRequest
 
-@Controller
+@RestController
 class PicController {
     @Autowired
     lateinit var redisTemplate: RedisTemplate<String, String>
@@ -22,7 +23,7 @@ class PicController {
     @Autowired
     lateinit var request: HttpServletRequest
     // 上传图片
-    @PostMapping("/upload")
+    @PostMapping("/images/upload")
     fun uploadImages(@RequestBody multipartFiles: List<MultipartFile>): List<String>{
         if (!checkToken(request, redisTemplate)) throw IllegalArgumentException("Token is Invalid")
         if (multipartFiles.isEmpty()) throw IllegalArgumentException("Image list is empty")
@@ -57,7 +58,7 @@ class PicController {
             }
         }
         // 如果页码超出
-        if (page * size > sortFiles.size) throw IllegalArgumentException("Page count exceeded")
+        if ((page - 1) * size > sortFiles.size) throw IllegalArgumentException("Page count exceeded")
         val resPathList = mutableListOf<String>()
         val resFiles : List<File> = if (page * size >= sortFiles.size) {
             // 如果最后一页大小不够
@@ -72,7 +73,10 @@ class PicController {
     }
 
     private fun checkToken(request: HttpServletRequest, redisTemplate: RedisTemplate<String,String>): Boolean{
-        val token = request.getHeader("Authorization") ?: return false
+        var token = request.getHeader("Authorization") ?: return false
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7)
+        }
         val remoteToken = redisTemplate.opsForValue().get(TokenConstants.TOKEN_KEY)
         return token == remoteToken
     }

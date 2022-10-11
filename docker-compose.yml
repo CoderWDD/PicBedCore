@@ -5,9 +5,9 @@ services:
     image: redis:latest
     restart: always
     ports:
-      - "9736:9736"
+      - "9736:6379"
     environment:
-      - REDIS_PORT=9736
+      - REDIS_PORT=6379
       - CONNECT_TIMEOUT=5000
       - MAX_IDLE=10
       - MAX_WAIT=-1
