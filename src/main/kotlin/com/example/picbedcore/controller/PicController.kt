@@ -64,12 +64,13 @@ class PicController {
     }
 
     @PostMapping("/images/delete/{imagePath}")
-    fun deleteImage(@PathVariable(value = "imagePath") imagePath: String){
+    fun deleteImage(@PathVariable(value = "imagePath") imagePath: String): String{
         if (!checkToken(request, redisTemplate)) throw IllegalArgumentException("Token is Invalid")
         if (imagePath.isEmpty()) throw IllegalArgumentException("Image Path should not be empty")
-        val file = File(FilePathConstant.IMAGE_PATH + imagePath)
+        val file = File(imagePath)
         if (!file.isFile) throw IllegalArgumentException("Image Path wrong")
         file.delete()
+        return "Delete Success"
     }
 
     private fun checkToken(request: HttpServletRequest, redisTemplate: RedisTemplate<String,String>): Boolean{
