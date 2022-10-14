@@ -63,6 +63,15 @@ class PicController {
         return DTOUtil.listToPageDTO(pathList, page, size)
     }
 
+    @PostMapping("/images/delete/{imagePath}")
+    fun deleteImage(@PathVariable(value = "imagePath") imagePath: String){
+        if (!checkToken(request, redisTemplate)) throw IllegalArgumentException("Token is Invalid")
+        if (imagePath.isEmpty()) throw IllegalArgumentException("Image Path should not be empty")
+        val file = File(FilePathConstant.IMAGE_PATH + imagePath)
+        if (!file.isFile) throw IllegalArgumentException("Image Path wrong")
+        file.delete()
+    }
+
     private fun checkToken(request: HttpServletRequest, redisTemplate: RedisTemplate<String,String>): Boolean{
         var token = request.getHeader("Authorization") ?: return false
         if (token.startsWith("Bearer ")) {
