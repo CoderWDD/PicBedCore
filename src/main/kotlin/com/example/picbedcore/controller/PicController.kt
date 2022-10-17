@@ -59,7 +59,9 @@ class PicController {
             }
         }
         val pathList = mutableListOf<String>()
-        sortFiles.forEach { pathList.add(it.path) }
+        sortFiles.forEach {
+            pathList.add(it.name)
+        }
         return DTOUtil.listToPageDTO(pathList, page, size)
     }
 
@@ -67,7 +69,8 @@ class PicController {
     fun deleteImage(@PathVariable(value = "imagePath") imagePath: String): String{
         if (!checkToken(request, redisTemplate)) throw IllegalArgumentException("Token is Invalid")
         if (imagePath.isEmpty()) throw IllegalArgumentException("Image Path should not be empty")
-        val file = File(imagePath)
+        val realImagePath = FilePathConstant.IMAGE_PATH + imagePath;
+        val file = File(realImagePath)
         if (!file.isFile) throw IllegalArgumentException("Image Path wrong")
         file.delete()
         return "Delete Success"
